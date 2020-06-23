@@ -16,6 +16,7 @@ class PurchaseDetails extends StatefulWidget {
 class _PurchaseDetailsState extends State<PurchaseDetails> {
   List purchaseDetails;
   String titlecenter = "Loading purchase details..";
+  double totalPrice = 0.0;
   double screenHeight;
   @override
   void initState() {
@@ -34,7 +35,7 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
           title: Text('Purchase Details'),
           backgroundColor: Colors.teal[900],
           elevation: 0.5,
-             leading: FlatButton(
+          leading: FlatButton(
               onPressed: () {
                 Navigator.pop(
                     context,
@@ -88,16 +89,24 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
               borderRadius: BorderRadius.all(Radius.circular(16))),
           child: Row(
             children: <Widget>[
-              Container(
-                margin: EdgeInsets.only(right: 8, left: 8, top:5, bottom: 10),
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.all(Radius.circular(20)),
-                    color: Colors.white,
-                    image: DecorationImage(
-                        image: NetworkImage(
-                            "http://saujanaeclipse.com/techGoods/productimage/${purchaseDetails[index]['id']}.jpg"))),
+              Column(
+                children: <Widget>[
+                  Container(
+                    margin:
+                        EdgeInsets.only(right: 8, left: 8, top: 5, bottom: 10),
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.all(Radius.circular(20)),
+                        color: Colors.white,
+                        image: DecorationImage(
+                            image: NetworkImage(
+                                "http://saujanaeclipse.com/techGoods/productimage/${purchaseDetails[index]['id']}.jpg"))),
+                  ),
+                  Text(
+                    "RM" + purchaseDetails[index]['price'],
+                  )
+                ],
               ),
               Expanded(
                 child: Container(
@@ -121,16 +130,15 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
                               ("Product ID:" + purchaseDetails[index]['id']),
                               style: TextStyle(fontSize: 15),
                             ),
-                             Text(
+                            Text(
                               ("Qty: " + purchaseDetails[index]['cquantity']),
                               style: TextStyle(fontSize: 15),
                             ),
-                            Text("RM"+purchaseDetails[index]['price'],
-                              style: TextStyle(fontSize: 15, color: Colors.green)),
-                        
+                            Text("RM" + purchaseDetails[index]['yourprice'],
+                                style: TextStyle(
+                                    fontSize: 15, color: Colors.green)),
                           ],
                         ),
-                        
                       ],
                     )),
               )
@@ -157,6 +165,7 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
         setState(() {
           var extractdata = json.decode(res.body);
           purchaseDetails = extractdata["carthistory"];
+          
         });
       }
     }).catchError((err) {

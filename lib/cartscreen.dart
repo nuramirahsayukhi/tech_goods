@@ -161,16 +161,21 @@ class _CartScreenState extends State<CartScreen> {
               borderRadius: BorderRadius.all(Radius.circular(16))),
           child: Row(
             children: <Widget>[
-              Container(
-                margin: EdgeInsets.only(right: 8, left: 8, bottom: 10),
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.all(Radius.circular(30)),
-                    color: Colors.white,
-                    image: DecorationImage(
-                        image: NetworkImage(
-                            "http://saujanaeclipse.com/techGoods/productimage/${cartInfo[index]['id']}.jpg"))),
+              Column(
+                children: <Widget>[
+                  Container(
+                    margin: EdgeInsets.only(right: 8, left: 8, bottom: 10),
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.all(Radius.circular(30)),
+                        color: Colors.white,
+                        image: DecorationImage(
+                            image: NetworkImage(
+                                "http://saujanaeclipse.com/techGoods/productimage/${cartInfo[index]['id']}.jpg"))),
+                  ),
+                  Text("RM"+cartInfo[index]['price'], style: TextStyle(color:Colors.green),)
+                ],
               ),
               Expanded(
                 child: Container(

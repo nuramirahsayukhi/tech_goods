@@ -183,7 +183,7 @@ class _MainScreenState extends State<MainScreen> {
                       },
                       child: ListTile(
                           title: Text(
-                            'Purchased History',
+                            'Purchase History',
                             style: TextStyle(fontSize: 16),
                           ),
                           leading: Icon(Icons.shopping_basket,

@@ -19,7 +19,7 @@ class PurchaseHistory extends StatefulWidget {
 class _PurchaseHistoryState extends State<PurchaseHistory> {
   List paymentData;
   double screenHeight, screenWidth;
-  String titlecenter = "Loading purchased history...";
+  String titlecenter = "Loading purchase history...";
   final f = new DateFormat('dd-MM-yyyy hh:mm a');
   var parsedDate;
 
@@ -40,7 +40,7 @@ class _PurchaseHistoryState extends State<PurchaseHistory> {
         appBar: AppBar(
           backgroundColor: Colors.teal[900],
           elevation: 0.5,
-          title: Text('Purchased History'),
+          title: Text('Purchase History'),
           leading: FlatButton(
               onPressed: () {
                 Navigator.pop(

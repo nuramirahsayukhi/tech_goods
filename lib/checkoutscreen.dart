@@ -210,7 +210,7 @@ class _MyAppState extends State<CheckOut> {
                             Padding(
                               padding: const EdgeInsets.only(left: 15, top: 5),
                               child: Text(
-                                'Total weight',
+                                'Total Weight',
                                 style: TextStyle(fontSize: 16),
                               ),
                             ),

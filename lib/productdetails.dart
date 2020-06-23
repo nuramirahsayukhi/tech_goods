@@ -7,8 +7,6 @@ import 'mainscreen.dart';
 import 'product.dart';
 import 'user.dart';
 
-void main() => runApp(ProductDetails());
-
 class ProductDetails extends StatefulWidget {
   final Product product;
   final User user;
