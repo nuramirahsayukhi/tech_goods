@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:progress_dialog/progress_dialog.dart';
 import 'package:toast/toast.dart';
 //own import
@@ -25,6 +26,7 @@ class _CartScreenState extends State<CartScreen> {
   double screenWidth;
   double totalPrice = 0.0;
   double weight = 0.0;
+  String titleCenter = 'Loading your cart..please wait';
 
   @override
   void initState() {
@@ -36,63 +38,60 @@ class _CartScreenState extends State<CartScreen> {
   Widget build(BuildContext context) {
     screenHeight = MediaQuery.of(context).size.height;
     screenWidth = MediaQuery.of(context).size.width;
-    if (cartInfo == null) {
-      return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'Material App',
-        home: Scaffold(
-          body: Container(
-            child: Center(
-                child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                CircularProgressIndicator(),
-                Align(
-                    alignment: Alignment.center,
-                    child: Text('Loading your cart'))
-              ],
-            )),
-          ),
-        ),
-      );
-    } else {
-      return MaterialApp(
-        title: 'Material App',
-        debugShowCheckedModeBanner: false,
-        home: Scaffold(
-            resizeToAvoidBottomPadding: false,
-            resizeToAvoidBottomInset: false,
-            appBar: AppBar(
-              backgroundColor: Colors.teal[900],
-              title: Text(
-                'My Cart',
-                style: TextStyle(color: Colors.white),
+    return MaterialApp(
+      title: 'Material App',
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+          //backgroundColor: Colors.black,
+          appBar: AppBar(
+            backgroundColor: Colors.teal[400],
+            elevation: 0.5,
+            title: Text('My Cart'),
+            leading: FlatButton(
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (BuildContext context) => MainScreen(
+                                user: widget.user,
+                              )));
+                },
+                child: Icon(
+                  Icons.arrow_back,
+                  color: Colors.white,
+                )),
+            actions: <Widget>[
+              IconButton(
+                icon: Icon(MdiIcons.deleteEmpty),
+                onPressed: () {
+                  deleteAll();
+                },
               ),
-              elevation: 0.5,
-              leading: FlatButton(
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (BuildContext context) => MainScreen(
-                                  user: widget.user,
-                                )));
-                  },
-                  child: Icon(
-                    Icons.arrow_back,
-                    color: Colors.white,
-                  )),
-            ),
-            body: Builder(builder: (context) {
-              return Container(
-                child: ListView(
-                  children: <Widget>[cartList(), footer(context)],
-                ),
-              );
-            })),
-      );
-    }
+            ],
+          ),
+          body: Builder(builder: (context) {
+            return Container(
+              child: ListView(
+                children: <Widget>[
+                  cartInfo == null
+                      ? Container(
+                          margin: EdgeInsets.only(top: screenHeight / 2),
+                          child: Center(
+                              child: Text(
+                            titleCenter,
+                            style: TextStyle(
+                                color: Colors.teal,
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold),
+                          )))
+                      : Column(
+                          children: <Widget>[cartList(), footer(context)],
+                        )
+                ],
+              ),
+            );
+          })),
+    );
   }
 
   void loadCart() {
@@ -107,9 +106,7 @@ class _CartScreenState extends State<CartScreen> {
       "email": widget.user.email,
     }).then((res) {
       print(res.body);
-      pr.hide().then((isHidden) {
-  print(isHidden);
-});
+      pr.hide();
       if (res.body == "Empty cart") {
         widget.user.quantity = "0";
         Navigator.push(
@@ -131,13 +128,9 @@ class _CartScreenState extends State<CartScreen> {
       });
     }).catchError((err) {
       print(err);
-      pr.hide().then((isHidden) {
-  print(isHidden);
-});
+      pr.hide();
     });
-    pr.hide().then((isHidden) {
-  print(isHidden);
-});
+    pr.hide();
   }
 
   Widget cartList() {
@@ -155,6 +148,7 @@ class _CartScreenState extends State<CartScreen> {
     return Stack(
       children: <Widget>[
         Container(
+          height: 165,
           margin: EdgeInsets.only(left: 10, right: 10, top: 20),
           decoration: BoxDecoration(
               color: Colors.grey[200],
@@ -164,17 +158,23 @@ class _CartScreenState extends State<CartScreen> {
               Column(
                 children: <Widget>[
                   Container(
-                    margin: EdgeInsets.only(right: 8, left: 8, bottom: 10),
-                    width: 80,
-                    height: 80,
+                    //margin: EdgeInsets.only(right: 8, left: 8, bottom: 10),
+                    width: 150,
+                    height: 165,
                     decoration: BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(30)),
+                        borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(16),
+                            bottomLeft: Radius.circular(16)),
                         color: Colors.white,
                         image: DecorationImage(
                             image: NetworkImage(
-                                "http://saujanaeclipse.com/techGoods/productimage/${cartInfo[index]['id']}.jpg"))),
+                                "http://saujanaeclipse.com/techGoods/productimage/${cartInfo[index]['id']}.jpg"),
+                            fit: BoxFit.cover)),
                   ),
-                  Text("RM"+cartInfo[index]['price'], style: TextStyle(color:Colors.green),)
+                  /*Text(
+                                  "RM" + cartInfo[index]['price'],
+                                  style: TextStyle(color: Colors.green),
+                                )*/
                 ],
               ),
               Expanded(
@@ -191,10 +191,22 @@ class _CartScreenState extends State<CartScreen> {
                         style: TextStyle(
                             fontSize: 15, fontWeight: FontWeight.bold),
                       ),
-                      SizedBox(height: 10),
-                      Text(
-                        ("RM " + cartInfo[index]['yourprice']),
-                        style: TextStyle(fontSize: 15),
+                      SizedBox(height: 5),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Expanded(
+                            child: Text(
+                              ("Your price: RM " +
+                                  cartInfo[index]['yourprice']),
+                              style: TextStyle(fontSize: 15),
+                            ),
+                          ),
+                          FlatButton(
+                            onPressed: () => {removeItem(index)},
+                            child: Icon(Icons.delete, color: Colors.red[300]),
+                          )
+                        ],
                       ),
                       Container(
                         child: Row(
@@ -202,7 +214,7 @@ class _CartScreenState extends State<CartScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: <Widget>[
                             Padding(
-                              padding: const EdgeInsets.only(top: 20, left: 5),
+                              padding: const EdgeInsets.only(top: 3, left: 5),
                               child: Row(
                                 children: <Widget>[
                                   FlatButton(
@@ -211,7 +223,7 @@ class _CartScreenState extends State<CartScreen> {
                                     child: Icon(
                                       Icons.remove,
                                       size: 18,
-                                      color: Colors.grey.shade700,
+                                      color: Colors.redAccent,
                                     ),
                                   ),
                                   Container(
@@ -227,7 +239,7 @@ class _CartScreenState extends State<CartScreen> {
                                     child: Icon(
                                       Icons.add,
                                       size: 18,
-                                      color: Colors.grey.shade700,
+                                      color: Colors.green,
                                     ),
                                   ),
                                 ],
@@ -236,23 +248,23 @@ class _CartScreenState extends State<CartScreen> {
                           ],
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 52),
-                        child: FlatButton.icon(
-                            shape: RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(10))),
-                            color: Colors.red[300],
-                            onPressed: () => {removeItem(index)},
-                            icon: Icon(
-                              Icons.delete,
-                              color: Colors.white,
-                            ),
-                            label: Text(
-                              'Remove',
-                              style: TextStyle(color: Colors.white),
-                            )),
-                      )
+                      /*Padding(
+                                      padding: const EdgeInsets.only(left: 52),
+                                      child: FlatButton.icon(
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.all(Radius.circular(10))),
+                                          color: Colors.red[300],
+                                          onPressed: () => {removeItem(index)},
+                                          icon: Icon(
+                                            Icons.delete,
+                                            color: Colors.white,
+                                          ),
+                                          label: Text(
+                                            'Remove',
+                                            style: TextStyle(color: Colors.white),
+                                          )),
+                                    )*/
                     ],
                   ),
                 ),
@@ -292,8 +304,6 @@ class _CartScreenState extends State<CartScreen> {
       if (res.body == "failed") {
         Toast.show("Failed to update", context,
             duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
-        Toast.show("Cart is successfully updated", context,
-            duration: Toast.LENGTH_SHORT, gravity: Toast.BOTTOM);
         loadCart();
       } else {
         print(res.body);
@@ -383,7 +393,10 @@ class _CartScreenState extends State<CartScreen> {
                 margin: EdgeInsets.only(left: 30),
                 child: Text(
                   "Total Price",
-                  style: TextStyle(color: Colors.black, fontSize: 16),
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold),
                 ),
               ),
               Container(
@@ -398,7 +411,7 @@ class _CartScreenState extends State<CartScreen> {
           ),
           SizedBox(height: 20),
           Container(
-            width: screenWidth / 1.5,
+            width: screenWidth / 1.1,
             height: 42,
             child: RaisedButton(
               onPressed: () {
@@ -413,14 +426,14 @@ class _CartScreenState extends State<CartScreen> {
                             )));
                 loadCart();
               },
-              color: Colors.green[900],
+              color: Colors.teal,
               padding:
                   EdgeInsets.only(top: 12, left: 40, right: 40, bottom: 12),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.all(Radius.circular(24))),
               child: Text(
                 "Check Out",
-                style: TextStyle(color: Colors.white, fontSize: 16),
+                style: TextStyle(color: Colors.white, fontSize: 18),
               ),
             ),
           ),
@@ -428,6 +441,61 @@ class _CartScreenState extends State<CartScreen> {
         ],
       ),
       margin: EdgeInsets.only(top: 16),
+    );
+  }
+
+  void deleteAll() {
+    showDialog(
+      context: context,
+      builder: (context) => new AlertDialog(
+        //backgroundColor: Colors.black,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(20.0))),
+        title: new Text(
+          'Delete all items?',
+          style: TextStyle(
+            color: Colors.black,
+          ),
+        ),
+        actions: <Widget>[
+          MaterialButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+                http.post(
+                    "https://saujanaeclipse.com/techGoods/php/delete_item.php",
+                    body: {
+                      "email": widget.user.email,
+                    }).then((res) {
+                  print(res.body);
+
+                  if (res.body == "success") {
+                    loadCart();
+                  } else {
+                    Toast.show("Failed", context,
+                        duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
+                  }
+                }).catchError((err) {
+                  print(err);
+                });
+              },
+              child: Text(
+                "Yes",
+                style: TextStyle(
+                  color: Colors.teal,
+                ),
+              )),
+          MaterialButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              child: Text(
+                "Cancel",
+                style: TextStyle(
+                  color: Colors.teal,
+                ),
+              )),
+        ],
+      ),
     );
   }
 }

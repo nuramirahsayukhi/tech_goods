@@ -76,6 +76,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget loginCard() {
     return Card(
+        //color: Color.fromRGBO(0, 230, 230, 1),
         elevation: 0,
         child: Container(
           padding: EdgeInsets.fromLTRB(30, 15, 30, 30),
@@ -86,12 +87,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: Colors.yellow[50],
+                    fillColor: Colors.white,
                     border: OutlineInputBorder(),
                     labelText: 'Email',
                     icon: Icon(
                       Icons.email,
-                      color: Colors.teal[200],
+                      color: Colors.teal,
                     ),
                   )),
               SizedBox(
@@ -101,12 +102,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: passwordEditingController,
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: Colors.yellow[50],
+                  fillColor: Colors.white,
                   border: OutlineInputBorder(),
                   labelText: 'Password',
                   icon: Icon(
                     Icons.lock,
-                    color: Colors.teal[200],
+                    color: Colors.teal,
                   ),
                 ),
                 obscureText: true,
@@ -118,18 +119,25 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: <Widget>[
                       Padding(
                         padding: const EdgeInsets.only(left: 10, top: 10),
-                        child: Checkbox(
-                          value: isChecked,
-                          onChanged: (bool value) {
-                            onRememberMe(value);
-                          },
+                        child: Container(
+                          color: Colors.white,
+                          height: 20,
+                          width: 20,
+                          child: Checkbox(
+                            value: isChecked,
+                            onChanged: (bool value) {
+                              onRememberMe(value);
+                            },
+                          ),
                         ),
                       ),
                       Padding(
                         padding: const EdgeInsets.only(left: 20, top: 10),
                         child: Text('Remember Me ',
                             style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold)),
+                                color: Colors.black,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold)),
                       ),
                       Expanded(
                         child: Container(
@@ -151,8 +159,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   )),
               FlatButton(
+                padding: EdgeInsets.only(top: 30),
                 onPressed: () {},
-                textColor: Colors.red,
+                textColor: Colors.red[400],
                 child: Text(
                   'Forgot Password?',
                   style: TextStyle(fontSize: 16),
@@ -160,7 +169,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               FlatButton(
                 onPressed: registerUser,
-                textColor: Colors.red,
+                textColor: Colors.red[400],
                 child: Text(
                   'Register New Account',
                   style: TextStyle(fontSize: 16),
@@ -265,10 +274,10 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void loadpref() async {
+  Future<void> loadpref() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    email = (prefs.getString('email'));
-    password = (prefs.getString('password'));
+    email = (prefs.getString('email')) ?? '';
+    password = (prefs.getString('password')) ?? '';
     if (email.length > 1) {
       emailEditingController.text = email;
       passwordEditingController.text = password;

@@ -31,9 +31,10 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
       debugShowCheckedModeBanner: false,
       title: 'Material App',
       home: Scaffold(
+        //backgroundColor: Colors.black,
         appBar: AppBar(
           title: Text('Purchase Details'),
-          backgroundColor: Colors.teal[900],
+          backgroundColor: Colors.teal[400],
           elevation: 0.5,
           leading: FlatButton(
               onPressed: () {
@@ -83,7 +84,8 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
     return Stack(
       children: <Widget>[
         Container(
-          margin: EdgeInsets.only(left: 10, right: 10, top: 20),
+          margin: EdgeInsets.fromLTRB(5, 10, 5, 10),
+          padding: EdgeInsets.only(bottom: 10),
           decoration: BoxDecoration(
               color: Colors.grey[200],
               borderRadius: BorderRadius.all(Radius.circular(16))),
@@ -93,7 +95,7 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
                 children: <Widget>[
                   Container(
                     margin:
-                        EdgeInsets.only(right: 8, left: 8, top: 5, bottom: 10),
+                        EdgeInsets.only(right: 8, left: 8, top: 10, bottom: 10),
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
@@ -105,12 +107,13 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
                   ),
                   Text(
                     "RM" + purchaseDetails[index]['price'],
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   )
                 ],
               ),
               Expanded(
                 child: Container(
-                    padding: EdgeInsets.all(8.0),
+                    padding: EdgeInsets.fromLTRB(8, 2, 8, 8),
                     child: Column(
                       mainAxisSize: MainAxisSize.max,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -127,7 +130,7 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: <Widget>[
                             Text(
-                              ("Product ID:" + purchaseDetails[index]['id']),
+                              ("Product ID: " + purchaseDetails[index]['id']),
                               style: TextStyle(fontSize: 15),
                             ),
                             Text(
@@ -165,7 +168,6 @@ class _PurchaseDetailsState extends State<PurchaseDetails> {
         setState(() {
           var extractdata = json.decode(res.body);
           purchaseDetails = extractdata["carthistory"];
-          
         });
       }
     }).catchError((err) {

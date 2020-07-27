@@ -1,9 +1,10 @@
 import 'dart:async';
-
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoder/geocoder.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:progress_dialog/progress_dialog.dart';
 import 'package:toast/toast.dart';
 import 'package:random_string/random_string.dart';
 import 'package:intl/intl.dart';
@@ -36,6 +37,8 @@ class _MyAppState extends State<CheckOut> {
   double deliveryCharge = 0.0;
   double subtotal;
   double totalPrice;
+  bool _storeCredit = false;
+  double amountpayable;
   bool selfPickup;
   String curaddress;
   Position currentPosition;
@@ -46,6 +49,7 @@ class _MyAppState extends State<CheckOut> {
   Set<Marker> markers = Set();
   double latitude, longitude;
   CameraPosition userPosition;
+  String server = "https://saujanaeclipse.com/techGoods";
   @override
   void initState() {
     super.initState();
@@ -66,7 +70,7 @@ class _MyAppState extends State<CheckOut> {
       home: Scaffold(
         appBar: AppBar(
           title: Text('Check Out'),
-          backgroundColor: Colors.teal[900],
+          backgroundColor: Colors.teal[400],
           leading: FlatButton(
               onPressed: () {
                 Navigator.push(
@@ -81,7 +85,7 @@ class _MyAppState extends State<CheckOut> {
                 color: Colors.white,
               )),
         ),
-        body: Column(
+        body: ListView(
           children: <Widget>[
             Container(
                 padding: EdgeInsets.only(left: 10, top: 10),
@@ -127,37 +131,40 @@ class _MyAppState extends State<CheckOut> {
                                 color: Colors.black,
                                 fontSize: 18)),
                       ),
-                      Row(
-                        children: <Widget>[
-                          Text("  "),
-                          Flexible(
-                            child: Text(
-                              curaddress ?? "Address not set",
-                              maxLines: 3,
-                              overflow: TextOverflow.ellipsis,
-                              style:
-                                  TextStyle(color: Colors.black, fontSize: 16),
-                            ),
-                          )
-                        ],
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: Row(
+                          children: <Widget>[
+                            Text("  "),
+                            Flexible(
+                              child: Text(
+                                curaddress ?? "Address not set",
+                                maxLines: 3,
+                                textAlign: TextAlign.justify,
+                                style: TextStyle(
+                                    color: Colors.black, fontSize: 16),
+                              ),
+                            )
+                          ],
+                        ),
                       ),
                       SizedBox(height: 20),
                       Center(
                           child: MaterialButton(
-                              color: Colors.teal[900],
+                              color: Colors.teal[300],
                               onPressed: () => {_loadMapDialog()},
                               child: Icon(
                                 Icons.map,
                                 color: Colors.white,
                               ))),
-                      SizedBox(height: 10),
+                      SizedBox(height: 20),
                       Text('Order Information',
                           style: TextStyle(
                               fontSize: 20, fontWeight: FontWeight.bold)),
                       Table(
                         columnWidths: {
-                          0: FractionColumnWidth(.5),
-                          1: FractionColumnWidth(.5)
+                          0: FractionColumnWidth(.6),
+                          1: FractionColumnWidth(.4)
                         },
                         children: [
                           TableRow(children: [
@@ -174,7 +181,7 @@ class _MyAppState extends State<CheckOut> {
                                 left: 50,
                               ),
                               child: Text(
-                                "RM " +
+                                "RM" +
                                         widget.cartinfo.subtotal
                                             .toStringAsFixed(2) ??
                                     "0.0",
@@ -221,7 +228,7 @@ class _MyAppState extends State<CheckOut> {
                               ),
                               child: Text(
                                 widget.cartinfo.totalWeight.toStringAsFixed(2) +
-                                    "kg",
+                                    " kg",
                                 style: TextStyle(
                                     color: Colors.greenAccent.shade700,
                                     fontSize: 16),
@@ -249,16 +256,51 @@ class _MyAppState extends State<CheckOut> {
                               ),
                             )
                           ]),
+                          TableRow(children: [
+                            Row(
+                              children: <Widget>[
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.only(left: 15, top: 5),
+                                  child: Text(
+                                    'Store Credits',
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                ),
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.only(left: 20, top: 5),
+                                  child: Text(
+                                    'RM' + widget.user.credit,
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                )
+                              ],
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Container(
+                                height: 20,
+                                child: Checkbox(
+                                  value: _storeCredit,
+                                  onChanged: (bool value) {
+                                    _onStoreCredit(value);
+                                  },
+                                ),
+                              ),
+                            ),
+                          ]),
                         ],
                       ),
-                      SizedBox(height: 80),
+                      SizedBox(height: 40),
                       Center(
                           child: Container(
-                        width: screenWidth / 1.5,
-                        height: 42,
+                        padding: EdgeInsets.only(bottom: 5),
+                        width: screenWidth / 1.1,
+                        height: 50,
                         child: RaisedButton(
-                          onPressed: makePayment,
-                          color: Colors.green[900],
+                          onPressed: makePaymentDialog,
+                          color: Colors.teal,
                           shape: RoundedRectangleBorder(
                               borderRadius:
                                   BorderRadius.all(Radius.circular(24))),
@@ -277,6 +319,7 @@ class _MyAppState extends State<CheckOut> {
 
   onSelfPickup(bool val) {
     //self pickup is true
+    _getLocation();
     setState(() {
       selfPickup = val;
       if (selfPickup == true) {
@@ -366,7 +409,7 @@ class _MyAppState extends State<CheckOut> {
                     ),
                   ),
                   Container(
-                    height: screenHeight ?? 300,
+                    height: screenHeight / 4 ?? 300,
                     width: screenWidth ?? 360,
                     child: GoogleMap(
                         mapType: MapType.normal,
@@ -467,7 +510,6 @@ class _MyAppState extends State<CheckOut> {
   void _updatePayment() {
     //weight = widget.cartinfo.totalWeight;
     deliveryCharge = 0.0;
-
     print(selfPickup);
     if (selfPickup == true) {
       deliveryCharge = 0.0;
@@ -480,11 +522,65 @@ class _MyAppState extends State<CheckOut> {
         deliveryCharge = 5.00;
       }
     }
-    totalPrice = subtotal + deliveryCharge;
+    if (_storeCredit) {
+      totalPrice =
+          deliveryCharge + totalPrice - double.parse(widget.user.credit);
+    } else {
+      totalPrice = deliveryCharge + subtotal;
+    }
+
     print(deliveryCharge);
   }
 
+  void makePaymentDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => new AlertDialog(
+        //backgroundColor: Colors.black,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(20.0))),
+        title: new Text(
+          'Proceed with payment?',
+          style: TextStyle(
+            color: Colors.black87,
+          ),
+        ),
+        content: new Text(
+          'Click Confirm to proceed. If you want to cancel making payment, click Cancel',
+          style: TextStyle(
+            color: Colors.black,
+          ),
+        ),
+        actions: <Widget>[
+          MaterialButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+                makePayment();
+              },
+              child: Text(
+                "Confirm",
+                style: TextStyle(color: Colors.teal),
+              )),
+          MaterialButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              child: Text(
+                "Cancel",
+                style: TextStyle(color: Colors.teal),
+              )),
+        ],
+      ),
+    );
+  }
+
   Future<void> makePayment() async {
+    if (totalPrice < 0) {
+      double newamount = totalPrice * -1;
+      await _payusingstorecredit(newamount);
+      //loadCart();
+      return;
+    }
     if (selfPickup == true) {
       print("PICKUP");
       Toast.show("Self Pickup", context,
@@ -513,5 +609,43 @@ class _MyAppState extends State<CheckOut> {
                   orderid: orderid,
                 )));
     //_loadCart();
+  }
+
+  String generateOrderid() {
+    var now = new DateTime.now();
+    var formatter = new DateFormat('ddMMyyyy-');
+    String orderid = widget.user.email.substring(1, 4) +
+        "-" +
+        formatter.format(now) +
+        randomAlphaNumeric(6);
+    return orderid;
+  }
+
+  void _onStoreCredit(bool newValue) => setState(() {
+        _storeCredit = newValue;
+        if (_storeCredit) {
+          _updatePayment();
+        } else {
+          _updatePayment();
+        }
+      });
+
+  Future<void> _payusingstorecredit(double newamount) async {
+    ProgressDialog pr = new ProgressDialog(context,
+        type: ProgressDialogType.Normal, isDismissible: true);
+    pr.style(message: "Updating cart...");
+    pr.show();
+    String urlPayment = server + "/php/paymentsc.php";
+    await http.post(urlPayment, body: {
+      "userid": widget.user.email,
+      "amount": totalPrice.toStringAsFixed(2),
+      "orderid": generateOrderid(),
+      "newcr": newamount.toStringAsFixed(2)
+    }).then((res) {
+      print(res.body);
+      pr.hide();
+    }).catchError((err) {
+      print(err);
+    });
   }
 }

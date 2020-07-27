@@ -48,14 +48,13 @@ class _ProductDetailsState extends State<ProductDetails> {
             body: Stack(
               children: <Widget>[
                 Container(
-                    margin: EdgeInsets.only(top: 20),
                     child: Image(
-                      height: screenHeight / 2.2,
-                      width: screenWidth / 0.8,
-                      fit: BoxFit.fill,
-                      image: NetworkImage(
-                          "http://saujanaeclipse.com/techGoods/productimage/${widget.product.id}.jpg"),
-                    )),
+                  height: screenHeight / 2,
+                  width: screenWidth / 0.8,
+                  fit: BoxFit.fill,
+                  image: NetworkImage(
+                      "http://saujanaeclipse.com/techGoods/productimage/${widget.product.id}.jpg"),
+                )),
                 Container(
                     margin: EdgeInsets.only(top: 330),
                     padding: EdgeInsets.only(top: 20, left: 18),
@@ -139,18 +138,32 @@ class _ProductDetailsState extends State<ProductDetails> {
                           ]),
                         ),
                         Container(
-                          width: screenWidth / 2,
+                          width: screenWidth / 1.1,
                           height: 42,
                           margin: EdgeInsets.only(top: 30),
                           child: MaterialButton(
-                              padding: EdgeInsets.only(left: 40),
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(20)),
                               onPressed: () {
+                                if (widget.user.email ==
+                                    "admin@techgoods.com") {
+                                  Toast.show('Admin mode', context,
+                                      duration: Toast.LENGTH_LONG,
+                                      gravity: Toast.BOTTOM);
+                                  return;
+                                } else if (widget.user.name == 'unregistered') {
+                                  Toast.show(
+                                      'Please register to use this function',
+                                      context,
+                                      duration: Toast.LENGTH_LONG,
+                                      gravity: Toast.BOTTOM);
+                                  return;
+                                }
                                 addItemConfirmation();
                               },
                               color: Colors.teal,
                               child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: <Widget>[
                                   Icon(Icons.add_shopping_cart,
                                       color: Colors.white),
@@ -281,9 +294,7 @@ class _ProductDetailsState extends State<ProductDetails> {
           if (res.body == "failed") {
             Toast.show('Failed to add to cart', context,
                 duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
-            pd.hide().then((isHidden) {
-              print(isHidden);
-            });
+            pd.hide().then((isHidden) {});
             return;
           } else {
             List respond = res.body.split(',');
@@ -294,18 +305,12 @@ class _ProductDetailsState extends State<ProductDetails> {
             Toast.show('Successfully added to cart', context,
                 duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
           }
-          pd.hide().then((isHidden) {
-            print(isHidden);
-          });
+          pd.hide().then((isHidden) {});
         }).catchError((err) {
           print(err);
-          pd.hide().then((isHidden) {
-            print(isHidden);
-          });
+          pd.hide().then((isHidden) {});
         });
-        pd.hide().then((isHidden) {
-          print(isHidden);
-        });
+        pd.hide().then((isHidden) {});
       } else {
         Toast.show("Out of stock", context,
             duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);

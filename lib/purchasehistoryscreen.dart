@@ -38,7 +38,7 @@ class _PurchaseHistoryState extends State<PurchaseHistory> {
       title: 'Material App',
       home: Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.teal[900],
+          backgroundColor: Colors.teal[400],
           elevation: 0.5,
           title: Text('Purchase History'),
           leading: FlatButton(
@@ -88,50 +88,74 @@ class _PurchaseHistoryState extends State<PurchaseHistory> {
   Widget paymentDataItem(int index) {
     return GestureDetector(
       onTap: () => loadPurchaseDetails(index),
-      child: Card(
-          color: Colors.teal[50],
-          child: Column(
-            children: <Widget>[
-              Text("Order ID #" + paymentData[index]['orderid']),
-              SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Column(
+      child: Container(
+        margin: EdgeInsets.fromLTRB(5, 10, 5, 10),
+        child: Card(
+            elevation: 3,
+            color: Colors.grey[200],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    "Order ID #" + paymentData[index]['orderid'],
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+                SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.only(left: 8.0, bottom: 15),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      Text(
-                        "Bill ID",
-                        style: TextStyle(color: Colors.grey),
+                      Column(
+                        children: <Widget>[
+                          Text(
+                            "Bill ID",
+                            style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            paymentData[index]['billid'],
+                          )
+                        ],
                       ),
-                      Text(
-                        paymentData[index]['billid'],
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      )
-                    ],
-                  ),
-                  SizedBox(width: 10),
-                  Column(
-                    children: <Widget>[
-                      Text("Total Amount",
-                          style: TextStyle(color: Colors.grey)),
-                      Text("RM" + paymentData[index]['total'],
-                          style: TextStyle(fontWeight: FontWeight.bold))
-                    ],
-                  ),
-                  SizedBox(width: 10),
-                  Column(
-                    children: <Widget>[
-                      Text("Date", style: TextStyle(color: Colors.grey)),
-                      Text(
-                        f.format(DateTime.parse(paymentData[index]['date'])),
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      SizedBox(width: 10),
+                      Column(
+                        children: <Widget>[
+                          Text("Total Amount",
+                              style: TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold)),
+                          Text(
+                            "RM" + paymentData[index]['total'],
+                          )
+                        ],
+                      ),
+                      SizedBox(width: 10),
+                      Column(
+                        children: <Widget>[
+                          Text("Date",
+                              style: TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold)),
+                          Padding(
+                            padding: const EdgeInsets.only(right: 2),
+                            child: Text(
+                              f.format(
+                                  DateTime.parse(paymentData[index]['date'])),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              )
-            ],
-          )),
+                )
+              ],
+            )),
+      ),
     );
   }
 

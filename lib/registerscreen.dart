@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:toast/toast.dart';
 import 'package:recase/recase.dart';
+import 'package:email_validator/email_validator.dart';
 
 import 'loginscreen.dart';
 
@@ -16,7 +17,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   TextEditingController phoneEditingController = new TextEditingController();
   TextEditingController passwordEditingController = new TextEditingController();
   GlobalKey<FormState> _key = new GlobalKey();
-  bool autoValidate = false;
+  //lidate = false;
+  String phoneErrorMessage;
+  bool validateMobile = false;
+  bool emailcheck = false;
   String urlRegister =
       "http://saujanaeclipse.com/techGoods/php/register_user.php";
 
@@ -91,7 +95,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: Form(
                   child: registerationForm(),
                   key: _key,
-                  autovalidate: autoValidate,
+                  //autovalidate: autoValidate,
                 ),
               ),
             ),
@@ -102,57 +106,62 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Widget registerationForm() {
-    return Container(padding: EdgeInsets.fromLTRB(45, 10, 45, 10),
-      child: Column(  
+    return Container(
+      padding: EdgeInsets.fromLTRB(45, 10, 45, 10),
+      child: Column(
         children: <Widget>[
           TextFormField(
+            style: TextStyle(color: Colors.white),
             controller: nameEditingController,
             keyboardType: TextInputType.text,
-            validator: _validateName,
+            //validator: _validateName,
             decoration: InputDecoration(
               hintText: "Name",
               icon: Icon(
                 Icons.person,
-                color: Colors.teal[200],
+                color: Colors.teal,
               ),
             ),
           ),
           SizedBox(height: 8),
           TextFormField(
+            style: TextStyle(color: Colors.white),
             controller: emailEditingController,
             keyboardType: TextInputType.emailAddress,
-            validator: _validateEmail,
+            //validator: _validateEmail,
             decoration: InputDecoration(
               hintText: "Email",
               icon: Icon(
                 Icons.email,
-                color: Colors.teal[200],
+                color: Colors.teal,
               ),
             ),
           ),
           SizedBox(height: 8),
           TextFormField(
+            style: TextStyle(color: Colors.white),
             controller: phoneEditingController,
             keyboardType: TextInputType.phone,
-            validator: _validatePhoneNo,
+            //validator: _validatePhoneNo,
             decoration: InputDecoration(
               hintText: "Phone number",
               icon: Icon(
                 Icons.phone,
-                color: Colors.teal[200],
+                color: Colors.teal,
               ),
             ),
           ),
           SizedBox(height: 8),
           TextFormField(
+            style: TextStyle(color: Colors.white),
             controller: passwordEditingController,
             keyboardType: TextInputType.text,
-            validator: _validatePassword,
+            //validator: _validatePassword,
             decoration: InputDecoration(
               hintText: "Password",
               icon: Icon(
                 Icons.lock,
-                color: Colors.teal[200],
+                color: Colors.teal,
               ),
             ),
             obscureText: true,
@@ -160,7 +169,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           SizedBox(
             height: 15,
           ),
-          Container(margin: EdgeInsets.only(left:150),
+          Container(
+            margin: EdgeInsets.only(left: 185),
             width: 130,
             height: 40,
             child: MaterialButton(
@@ -168,7 +178,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   borderRadius: new BorderRadius.circular(10.0)),
               textColor: Colors.white,
               color: Colors.teal[300],
-              child: Text('Register', style: TextStyle(fontSize: 23)),
+              child: Text('Register', style: TextStyle(fontSize: 20)),
               onPressed: _confirmRegister,
             ),
           ),
@@ -176,7 +186,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             height: 10,
           ),
           Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: <Widget>[
                 Checkbox(
                   value: _isChecked,
@@ -187,10 +197,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 GestureDetector(
                   onTap: _showEULA,
                   child: Text('I Agree to Terms  ',
-                      style:
-                          TextStyle(color:Colors.redAccent, fontSize: 16, fontWeight: FontWeight.bold)),
+                      style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold)),
                 ),
               ]),
+          SizedBox(height: 5),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text('Already have an account?',
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16)),
+              SizedBox(width: 10),
+              GestureDetector(
+                child: Text('Log In',
+                    style: TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16)),
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (BuildContext context) => LoginScreen()));
+                },
+              )
+            ],
+          )
         ],
       ),
     );
@@ -222,7 +259,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               fontSize: 20.0,
                             ),
                             text:
-                                "Confirm registration? If you wish to cancel registration, click 'No' to cancel registration. " //children: getSpan(),
+                                "Confirm registration? If you wish to cancel registration, click 'Cancel' to cancel registration. " //children: getSpan(),
                             )),
                   ),
                 )
@@ -241,7 +278,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   Navigator.of(context).pop();
                 }),
             new FlatButton(
-              child: new Text("No", style: TextStyle(color: Colors.red)),
+              child: new Text("Cancel", style: TextStyle(color: Colors.red)),
               onPressed: () {
                 Navigator.of(context).pop();
                 return;
@@ -254,23 +291,58 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _onRegister() {
-    
     String name = nameEditingController.text;
     String email = emailEditingController.text;
     String phone = phoneEditingController.text;
     String password = passwordEditingController.text;
-    ReCase rc = new ReCase(name); 
-    if (_key.currentState.validate()) {
-    } else {
-      setState(() {
-        autoValidate = true;
-      });
+    ReCase rc = new ReCase(name);
+
+    emailcheck = EmailValidator.validate(email);
+    validateMobile(String phone) {
+      String pattern = r'(^(?:[+0]9)?[0-9]{10,12}$)';
+      RegExp regExp = new RegExp(pattern);
+      if (phone.length == 0 || phone == null) {
+        phoneErrorMessage = 'Please enter mobile number';
+        return false;
+      } else if (!regExp.hasMatch(phone)) {
+        phoneErrorMessage = 'Please enter valid mobile number';
+        return false;
+      }
+      return true;
     }
-    if (!_isChecked) {
-      Toast.show("Please tick the Accept Term checkbox", context,
+
+    if (name.length == 0) {
+      Toast.show("Please Enter Your Name", context,
           duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
+
+      return;
+    } else if (email.length == 0) {
+      Toast.show("Please Enter Your Email", context,
+          duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
+
+      return;
+    } else if (emailcheck == false) {
+      Toast.show("Invalid Email Format", context,
+          duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
+
+      return;
+    } else if (validateMobile(phone) == false) {
+      Toast.show(phoneErrorMessage, context,
+          duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
+
+      return;
+    } else if (password.length == 0) {
+      Toast.show("Please Enter Your Password", context,
+          duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
+
+      return;
+    } else if (!_isChecked) {
+      Toast.show("Please Accept Terms", context,
+          duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
+
       return;
     }
+
     http.post(urlRegister, body: {
       "name": rc.titleCase.toString(),
       "email": email,
@@ -278,7 +350,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       "phone": phone,
     }).then((res) {
       if (res.body == "success") {
-        Navigator.pop(
+        Navigator.push(
             context,
             MaterialPageRoute(
                 builder: (BuildContext context) => LoginScreen()));
@@ -345,50 +417,5 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
       },
     );
-  }
-
-  String _validateName(String name) {
-    if (name.length == 0) {
-      return 'Please enter your name';
-    } else if (name.length < 6) {
-      return 'Please enter more than 5 characters';
-    } else {
-      return null;
-    }
-  }
-
-  String _validateEmail(String email) {
-    Pattern pattern =
-        r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
-    RegExp regex = new RegExp(pattern);
-    if (email.length == 0) {
-      return 'Email is required';
-    } else if (!regex.hasMatch(email)) {
-      return 'Invalid email address';
-    } else {
-      return null;
-    }
-  }
-
-  String _validatePassword(String password) {
-    if (password.length == 0) {
-      return 'Please enter your password';
-    } else {
-      return null;
-    }
-  }
-
-  String _validatePhoneNo(String phone) {
-    String pattern = r'(^[0-9]*$)';
-    RegExp regExp = new RegExp(pattern);
-    if (phone.length == 0) {
-      return 'Please enter your phone number';
-    } else if (!regExp.hasMatch(phone)) {
-      return 'Phone number must be numerics only';
-    } else if (!((phone.length == 10) || (phone.length == 11))) {
-      return 'Invalid phone number';
-    } else {
-      return null;
-    }
   }
 }

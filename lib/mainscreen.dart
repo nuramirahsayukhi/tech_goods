@@ -1,18 +1,21 @@
+import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:progress_dialog/progress_dialog.dart';
+import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_pro/carousel_pro.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:progress_dialog/progress_dialog.dart';
 import 'package:http/http.dart' as http;
 import 'package:toast/toast.dart';
-
+import 'adminproduct.dart';
 import 'cartscreen.dart';
 import 'product.dart';
 import 'productdetails.dart';
 import 'profilescreen.dart';
 import 'purchasehistoryscreen.dart';
 import 'user.dart';
-//own import
-
 
 class MainScreen extends StatefulWidget {
   final User user;
@@ -24,16 +27,23 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   TextEditingController searchProductController = new TextEditingController();
+  GlobalKey<RefreshIndicatorState> refreshKey;
   List productInfo; //creating list of products
   double screenHeight, screenWidth;
-  String currentCategory = "Recent"; //the initial category is set to Recent
+  String currentCategory = "Recent";
+  String titlecenter = "Loading products...";
   bool _visible = false;
-  String cartquantity = "0"; //the initial cart quantity is set to 0
-
+  String cartquantity = "0";
+  String server =
+      "https://saujanaeclipse.com/techGoods"; //the initial cart quantity is set to 0
+  bool _isAdmin = false;
   @override
   void initState() {
     super.initState();
-    loadData();
+    _loadData();
+    if (widget.user.email == "admin@techgoods.com") {
+      _isAdmin = true;
+    }
     _loadCartQuantity();
   }
 
@@ -41,410 +51,380 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     screenHeight = MediaQuery.of(context).size.height;
     screenWidth = MediaQuery.of(context).size.width;
-    if (productInfo == null) {
-      return MaterialApp(
-          debugShowCheckedModeBanner: false,
-          title: 'Material App',
-          home: Scaffold(
-              body: Container(
-            child: Center(
-                child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                CircularProgressIndicator(),
-                SizedBox(height: 20),
-                Align(
-                  alignment: Alignment.center,
-                  child: Text('Loading...'),
-                )
-              ],
-            )),
-          )));
-    } else {
-      return MaterialApp(
-          debugShowCheckedModeBanner: false,
-          title: 'Material App',
-          home: Scaffold(
-            resizeToAvoidBottomPadding: false,
-            appBar: AppBar(
-              backgroundColor: Colors.teal[900],
-              elevation: 0.5,
-              title: Container(
-                padding: EdgeInsets.only(left: 80),
-                child: Text("TechGoods", style: TextStyle(color: Colors.white)),
-              ),
-              actions: <Widget>[
-                IconButton(
-                  icon: _visible
-                      ? new Icon(Icons.expand_more)
-                      : new Icon(Icons.expand_less),
-                  onPressed: () {
-                    setState(() {
-                      if (_visible) {
-                        _visible = false;
-                      } else {
-                        _visible = true;
-                      }
-                    });
-                  },
-                )
-              ],
-            ),
-            drawer: new Drawer(
-              child: new ListView(
-                children: <Widget>[
-                  new UserAccountsDrawerHeader(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF004D40),
-                    ),
-                    accountName: Text(
-                      widget.user.name,
-                      style: TextStyle(fontSize: 20.0),
-                    ),
-                    accountEmail: Text(widget.user.email),
-                    currentAccountPicture: CircleAvatar(
-                        backgroundColor:
-                            Theme.of(context).platform == TargetPlatform.android
-                                ? Colors.white
-                                : Colors.white,
-                        child: Text(
-                          widget.user.name
-                              .toString()
-                              .substring(0, 1)
-                              .toUpperCase(),
-                          style: TextStyle(fontSize: 40.0),
-                        )),
-                  ),
-                  InkWell(
-                      onTap: () {},
-                      child: ListTile(
-                          title: Text(
-                            'Home',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                          leading: Icon(Icons.home, color: Colors.teal[400]))),
-                  InkWell(
-                      onTap: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (BuildContext context) =>
-                                    ProfileScreen(
-                                      user: widget.user,
-                                    )));
-                      },
-                      child: ListTile(
-                          title: Text(
-                            'My Profile',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                          leading:
-                              Icon(Icons.person, color: Colors.blue[400]))),
-                  InkWell(
-                      onTap: () async {
-                        if (widget.user.email == "unregistered") {
-                          Toast.show(
-                              "Please register to use this function", context,
-                              duration: Toast.LENGTH_LONG,
-                              gravity: Toast.BOTTOM);
-                          return;
-                        } else if (widget.user.quantity == "0") {
-                          Toast.show("Cart is empty", context,
-                              duration: Toast.LENGTH_LONG,
-                              gravity: Toast.BOTTOM);
-                        } else {
-                          await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (BuildContext context) => CartScreen(
-                                        user: widget.user,
-                                      )));
-                          loadData();
-                          _loadCartQuantity();
-                        }
-                      },
-                      child: ListTile(
-                          title: Text(
-                            'Shopping Cart',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                          leading: Icon(Icons.shopping_cart,
-                              color: Colors.red[400]))),
-                  InkWell(
-                      onTap: () async {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (BuildContext context) =>
-                                    PurchaseHistory(
-                                      user: widget.user,
-                                    )));
-                      },
-                      child: ListTile(
-                          title: Text(
-                            'Purchase History',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                          leading: Icon(Icons.shopping_basket,
-                              color: Colors.orange[300]))),
-                ],
-              ),
-            ),
-            body: Container(
-              color: Colors.white,
-              child: Column(
-                children: <Widget>[
-                  SizedBox(height: 4),
-                  searchProd(),
-                  SizedBox(
-                    height: 5.0,
-                  ),
-                  categoryText(),
-                  categoryIcon(),
-                  productList()
-                ],
-              ),
-            ),
-            floatingActionButton: FloatingActionButton.extended(
-              backgroundColor: Colors.teal,
-              onPressed: () async {
-                if (widget.user.email == "unregistered") {
-                  Toast.show("Please register to use this function", context,
-                      duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
-                  return;
-                } else if (widget.user.quantity == "0") {
-                  Toast.show("Cart is empty", context,
-                      duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
-                } else {
-                  await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (BuildContext context) => CartScreen(
-                                user: widget.user,
-                              )));
-                  loadData();
-                  _loadCartQuantity();
-                }
-              },
-              icon: Icon(Icons.shopping_cart, color: Colors.white),
-              label: Text(
-                cartquantity,
-                style: TextStyle(color: Colors.white),
-              ),
-              elevation: 20.0,
-              //backgroundColor: Colors.teal[700],
-            ),
-          ));
-    }
-  }
 
-  Widget categoryText() {
-    return Visibility(
-      visible: _visible,
-      child: Container(
-        padding: EdgeInsets.only(left: 15),
-        child: Align(
-            alignment: Alignment.topLeft,
-            child: Text(
-              "Categories",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            )),
-      ),
-    );
-  }
-
-  //widget to display image carousel
-  Widget imageCarousel() {
-    return Container(
-      child: SizedBox(
-          height: 200.0,
-          width: 500.0,
-          child: Carousel(
-            dotBgColor: Colors.grey,
-            dotColor: Colors.teal[300],
-            indicatorBgPadding: 0.5,
-            images: [
-              ExactAssetImage("assets/images/miphone.jpg"),
-              ExactAssetImage("assets/images/surface.jpg"),
-              ExactAssetImage("assets/images/tablets.jpg")
-            ],
-          )),
-    );
-  }
-
-  //widget for buttons to go to products based on the categories
-  Widget categoryIcon() {
-    return Container(
-        padding: EdgeInsets.all(5.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            Visibility(
-              visible: _visible,
-              child: Card(
-                elevation: 0,
-                color: Colors.white,
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: <Widget>[
-                      FlatButton(
-                        onPressed: () => sortItem('Recent'),
-                        padding: EdgeInsets.all(10),
-                        child: Column(
-                          children: <Widget>[
-                            Icon(
-                              Icons.update,
-                              color: Colors.green,
-                            ),
-                            Text(
-                              "Recent",
-                              style: TextStyle(color: Colors.black),
-                            )
-                          ],
-                        ),
-                      ),
-                      FlatButton(
-                        onPressed: () => sortItem('Laptop'),
-                        padding: EdgeInsets.all(10),
-                        child: Column(
-                          children: <Widget>[
-                            Icon(
-                              Icons.laptop_mac,
-                              color: Colors.green,
-                            ),
-                            Text(
-                              "Laptop",
-                              style: TextStyle(color: Colors.black),
-                            )
-                          ],
-                        ),
-                      ),
-                      FlatButton(
-                        onPressed: () => sortItem('Mobile Phone'),
-                        padding: EdgeInsets.all(10),
-                        child: Column(
-                          children: <Widget>[
-                            Icon(
-                              Icons.phone_android,
-                              color: Colors.green[300],
-                            ),
-                            Text(
-                              "Mobile Phone",
-                              style: TextStyle(color: Colors.black),
-                            )
-                          ],
-                        ),
-                      ),
-                      FlatButton(
-                        onPressed: () => sortItem('Tablet'),
-                        padding: EdgeInsets.all(10),
-                        child: Column(
-                          children: <Widget>[
-                            Icon(
-                              Icons.tablet_android,
-                              color: Colors.green[300],
-                            ),
-                            Text(
-                              "Tablet",
-                              style: TextStyle(color: Colors.black),
-                            )
-                          ],
-                        ),
-                      ),
-                      FlatButton(
-                        onPressed: () => sortItem('Computer Accessories'),
-                        padding: EdgeInsets.all(10),
-                        child: Column(
-                          children: <Widget>[
-                            Icon(
-                              Icons.keyboard,
-                              color: Colors.green,
-                            ),
-                            Text(
-                              "Computer",
-                              style: TextStyle(color: Colors.black),
-                            ),
-                            Text(
-                              "Accessories",
-                              style: TextStyle(color: Colors.black),
-                            )
-                          ],
-                        ),
-                      ),
-                      FlatButton(
-                        onPressed: () => sortItem('Mobile Accessories'),
-                        padding: EdgeInsets.all(10),
-                        child: Column(
-                          children: <Widget>[
-                            Icon(
-                              Icons.chat,
-                              color: Colors.green,
-                            ),
-                            Text(
-                              "Mobile",
-                              style: TextStyle(color: Colors.black),
-                            ),
-                            Text(
-                              "Accessories",
-                              style: TextStyle(color: Colors.black),
-                            )
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+    return WillPopScope(
+        onWillPop: _onBackPressed,
+        child: Scaffold(
+          //backgroundColor: Colors.black,
+          drawer: mainDrawer(context),
+          appBar: AppBar(
+            backgroundColor: Colors.teal[400],
+            title: Center(
+              child: Text(
+                'Tech Goods',
+                style: TextStyle(
+                  color: Colors.white,
                 ),
               ),
             ),
-          ],
-        ));
-  }
-
-  Widget searchProd() {
-    return Visibility(
-        visible: _visible,
-        child: Row(
-          children: <Widget>[
-            Container(
-              margin: EdgeInsets.only(left: 10, right: 10, top: 18),
-              height: screenHeight / 14,
-              width: screenWidth / 1.3,
-              decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(28)),
-              child: Padding(
-                padding: const EdgeInsets.only(top: 3, left: 20),
-                child: TextField(
-                    controller: searchProductController,
-                    decoration: InputDecoration(
-                        hintText: 'Search Product',
-                        //icon: Icon(Icons.search),
-                        border: InputBorder.none)),
+            actions: <Widget>[
+              IconButton(
+                icon: _visible
+                    ? new Icon(Icons.expand_more)
+                    : new Icon(Icons.expand_less),
+                onPressed: () {
+                  setState(() {
+                    if (_visible) {
+                      _visible = false;
+                    } else {
+                      _visible = true;
+                    }
+                  });
+                },
               ),
-            ),
-            Expanded(
-                child: Padding(
-              padding: const EdgeInsets.only(top: 20),
-              child: MaterialButton(
-                  onPressed: () =>
-                      {sortItemByName(searchProductController.text)},
-                  child: Icon(
-                    Icons.search,
-                    color: Colors.teal,
-                  )),
-            )),
-          ],
+
+              //
+            ],
+          ),
+          body: RefreshIndicator(
+              key: refreshKey,
+              color: Color.fromRGBO(101, 255, 218, 50),
+              onRefresh: () async {
+                await refreshList();
+              },
+              child: Container(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    imageCarousel(),
+                    Visibility(
+                      visible: _visible,
+                      child: GestureDetector(
+                        child: Card(
+                            //color: Colors.black,
+                            elevation: 0,
+                            child: Padding(
+                                padding: EdgeInsets.all(5),
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    children: <Widget>[
+                                      Column(
+                                        children: <Widget>[
+                                          FlatButton(
+                                              onPressed: () =>
+                                                  _sortItem("Recent"),
+                                              padding: EdgeInsets.all(10.0),
+                                              child: Column(
+                                                // Replace with a Row for horizontal icon + text
+                                                children: <Widget>[
+                                                  Icon(MdiIcons.update,
+                                                      color: Colors.teal[200]),
+                                                  Text(
+                                                    "Recent",
+                                                    style: TextStyle(
+                                                        color: Colors.black),
+                                                  )
+                                                ],
+                                              )),
+                                        ],
+                                      ),
+                                      SizedBox(
+                                        width: 3,
+                                      ),
+                                      Column(
+                                        children: <Widget>[
+                                          FlatButton(
+                                              onPressed: () =>
+                                                  _sortItem("Laptop"),
+                                              padding: EdgeInsets.all(10.0),
+                                              child: Column(
+                                                // Replace with a Row for horizontal icon + text
+                                                children: <Widget>[
+                                                  Icon(
+                                                    MdiIcons.laptopChromebook,
+                                                    color: Colors.teal[200],
+                                                  ),
+                                                  Text(
+                                                    "Laptop",
+                                                    style: TextStyle(
+                                                        color: Colors.black),
+                                                  )
+                                                ],
+                                              )),
+                                        ],
+                                      ),
+                                      SizedBox(
+                                        width: 3,
+                                      ),
+                                      Column(
+                                        children: <Widget>[
+                                          FlatButton(
+                                              onPressed: () =>
+                                                  _sortItem("Mobile Phone"),
+                                              padding: EdgeInsets.all(10.0),
+                                              child: Column(
+                                                // Replace with a Row for horizontal icon + text
+                                                children: <Widget>[
+                                                  Icon(
+                                                    MdiIcons.cellphoneAndroid,
+                                                    color: Colors.teal[200],
+                                                  ),
+                                                  Text(
+                                                    "Mobile Phone",
+                                                    style: TextStyle(
+                                                        color: Colors.black),
+                                                  )
+                                                ],
+                                              )),
+                                        ],
+                                      ),
+                                      SizedBox(
+                                        width: 3,
+                                      ),
+                                      Column(
+                                        children: <Widget>[
+                                          FlatButton(
+                                              onPressed: () =>
+                                                  _sortItem("Tablet"),
+                                              padding: EdgeInsets.all(10.0),
+                                              child: Column(
+                                                // Replace with a Row for horizontal icon + text
+                                                children: <Widget>[
+                                                  Icon(
+                                                    MdiIcons.tabletAndroid,
+                                                    color: Colors.teal[200],
+                                                  ),
+                                                  Text(
+                                                    "Tablet",
+                                                    style: TextStyle(
+                                                        color: Colors.black),
+                                                  )
+                                                ],
+                                              )),
+                                        ],
+                                      ),
+                                      SizedBox(
+                                        width: 3,
+                                      ),
+                                      Column(
+                                        children: <Widget>[
+                                          FlatButton(
+                                              onPressed: () => _sortItem(
+                                                  "Computer Accesories"),
+                                              padding: EdgeInsets.all(10.0),
+                                              child: Column(
+                                                // Replace with a Row for horizontal icon + text
+                                                children: <Widget>[
+                                                  Icon(
+                                                    MdiIcons.desktopClassic,
+                                                    color: Colors.teal[200],
+                                                  ),
+                                                  Text(
+                                                    "Computer",
+                                                    style: TextStyle(
+                                                        color: Colors.black),
+                                                  ),
+                                                  Text(
+                                                    'Accessories',
+                                                    style: TextStyle(
+                                                        color: Colors.black),
+                                                  )
+                                                ],
+                                              )),
+                                        ],
+                                      ),
+                                      SizedBox(
+                                        width: 3,
+                                      ),
+                                      Column(
+                                        children: <Widget>[
+                                          FlatButton(
+                                              onPressed: () => _sortItem(
+                                                  "Mobile Accessories"),
+                                              padding: EdgeInsets.all(10.0),
+                                              child: Column(
+                                                // Replace with a Row for horizontal icon + text
+                                                children: <Widget>[
+                                                  Icon(MdiIcons.headphones,
+                                                      color: Colors.teal[200]),
+                                                  Text(
+                                                    "Mobile",
+                                                    style: TextStyle(
+                                                        color: Colors.black),
+                                                  ),
+                                                  Text(
+                                                    "Accessories",
+                                                    style: TextStyle(
+                                                        color: Colors.black),
+                                                  )
+                                                ],
+                                              )),
+                                        ],
+                                      ),
+                                      SizedBox(
+                                        width: 3,
+                                      ),
+                                      SizedBox(
+                                        width: 3,
+                                      ),
+                                      SizedBox(
+                                        width: 3,
+                                      ),
+                                      Column(
+                                        children: <Widget>[
+                                          FlatButton(
+                                              onPressed: () =>
+                                                  _sortItem("Others"),
+                                              padding: EdgeInsets.all(10.0),
+                                              child: Column(
+                                                // Replace with a Row for horizontal icon + text
+                                                children: <Widget>[
+                                                  Icon(
+                                                    MdiIcons.ornament,
+                                                    color: Colors.teal[200],
+                                                  ),
+                                                  Text(
+                                                    "Others",
+                                                    style: TextStyle(
+                                                        color: Colors.black),
+                                                  )
+                                                ],
+                                              )),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ))),
+                      ),
+                    ),
+                    searchProd(),
+                    productInfo == null
+                        ? Flexible(
+                            child: Container(
+                                child: Center(
+                                    child: Text(
+                            titlecenter,
+                            style: TextStyle(
+                                color: Colors.teal,
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold),
+                          ))))
+                        : Expanded(
+                            child: GridView.count(
+                                crossAxisCount: 2,
+                                childAspectRatio:
+                                    (screenWidth / screenHeight) / 0.8,
+                                children:
+                                    List.generate(productInfo.length, (index) {
+                                  return Container(
+                                      child: Card(
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(16)),
+                                          color: Colors.white,
+                                          elevation: 1,
+                                          child: Padding(
+                                            padding: EdgeInsets.all(5),
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: <Widget>[
+                                                GestureDetector(
+                                                  onTap: () =>
+                                                      _productDetails(index),
+                                                  child: Container(
+                                                    height: screenHeight / 5.9,
+                                                    width: screenWidth / 2.8,
+                                                    child: ClipOval(
+                                                        child:
+                                                            CachedNetworkImage(
+                                                      fit: BoxFit.fill,
+                                                      imageUrl: server +
+                                                          "/productimage/${productInfo[index]['id']}.jpg",
+                                                      placeholder: (context,
+                                                              url) =>
+                                                          new CircularProgressIndicator(),
+                                                      errorWidget: (context,
+                                                              url, error) =>
+                                                          new Icon(Icons.error),
+                                                    )),
+                                                  ),
+                                                ),
+                                                Text(
+                                                  productInfo[index]['name'],
+                                                  maxLines: 3,
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.black,
+                                                  ),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          top: 4, bottom: 4),
+                                                  child: Text(
+                                                    "RM " +
+                                                        productInfo[index]
+                                                            ['price'],
+                                                    style: TextStyle(
+                                                        color: Colors.black),
+                                                  ),
+                                                ),
+                                                Text(
+                                                  "Quantity available:" +
+                                                      productInfo[index]
+                                                          ['quantity'],
+                                                  style: TextStyle(
+                                                    color: Colors.black,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          )));
+                                })))
+                  ],
+                ),
+              )),
+          floatingActionButton: FloatingActionButton.extended(
+            backgroundColor: Colors.teal,
+            onPressed: () async {
+              if (widget.user.email == "unregistered@techgoods.com") {
+                Toast.show("Please register to use this function", context,
+                    duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
+                return;
+              } else if (widget.user.email == "admin@techgoods.com") {
+                Toast.show("Admin Mode", context,
+                    duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
+                return;
+              } else if (widget.user.quantity == "0") {
+                Toast.show("Empty Cart", context,
+                    duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
+                return;
+              } else {
+                await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (BuildContext context) => CartScreen(
+                              user: widget.user,
+                            )));
+                _loadData();
+                _loadCartQuantity();
+              }
+            },
+            icon: Icon(Icons.add_shopping_cart),
+            label: Text(cartquantity),
+          ),
         ));
   }
 
-  void loadData() async {
-    String urlLoadProduct =
-        "https://saujanaeclipse.com/techGoods/php/load_products.php";
-    await http.post(urlLoadProduct, body: {}).then((res) {
+  void _loadData() async {
+    String urlLoadData = server + "/php/load_products.php";
+    await http.post(urlLoadData, body: {}).then((res) {
       if (res.body == "nodata") {
         cartquantity = "0";
+        titlecenter = "No product found";
         setState(() {
           productInfo = null;
         });
@@ -453,7 +433,6 @@ class _MainScreenState extends State<MainScreen> {
           var extractdata = json.decode(res.body);
           productInfo = extractdata["products"];
           cartquantity = widget.user.quantity;
-          //print("Quantity in cart: $cartquantity");
         });
       }
     }).catchError((err) {
@@ -462,13 +441,12 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _loadCartQuantity() async {
-    String urlLoadCartQty =
-        "https://saujanaeclipse.com/techGoods/php/load_cartQty.php";
-    await http.post(urlLoadCartQty, body: {
+    String urlLoadQty = server + "/php/load_cartQty.php";
+    await http.post(urlLoadQty, body: {
       "email": widget.user.email,
     }).then((res) {
-      print(res.body);
       if (res.body == "nodata") {
+        widget.user.quantity = '0';
       } else {
         widget.user.quantity = res.body;
       }
@@ -477,231 +455,328 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
-  Widget productList() {
-    return Flexible(
-        child: GridView.count(
-            childAspectRatio: (screenWidth / screenHeight) / 0.8,
-            crossAxisCount: 2,
-            children: List.generate(
-              productInfo.length,
-              (index) {
-                return GestureDetector(
-                  onTap: () => _productDetails(index),
-                  child: Card(
-                    elevation: 1,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16)),
-                    color: Colors.grey[100],
-                    child: Padding(
-                      padding: EdgeInsets.all(5),
-                      child: Column(
-                        children: <Widget>[
-                          //to display image of product
-                          Container(
-                            margin: EdgeInsets.only(top: 10),
-                            height: screenHeight / 5,
-                            width: screenWidth / 2,
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                shape: BoxShape.rectangle,
-                                image: DecorationImage(
-                                    fit: BoxFit.fill,
-                                    image: NetworkImage(
-                                        "http://saujanaeclipse.com/techGoods/productimage/${productInfo[index]['id']}.jpg"))),
-                          ),
-                          Container(
-                              child: Column(
-                            children: <Widget>[
-                              Padding(
-                                padding:
-                                    const EdgeInsets.only(top: 10, bottom: 5.0),
-                                child: Text(
-                                  productInfo[index][
-                                      'name'], //display the name of the product
-                                  maxLines: 2,
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold, height: 1.5),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                              Text(
-                                "RM " + productInfo[index]['price'],
-                                style: TextStyle(
-                                    color: Colors.greenAccent.shade700),
-                              ),
-                              Text("In Stock:" +
-                                  productInfo[index]['quantity']),
-                            ],
-                          ))
-                        ],
-                      ),
+  Widget mainDrawer(BuildContext context) {
+    return Drawer(
+      child: Container(
+        color: Colors.white,
+        child: ListView(
+          children: <Widget>[
+            UserAccountsDrawerHeader(
+              decoration: BoxDecoration(color: Colors.teal[400]),
+              accountName: Text(widget.user.name),
+              accountEmail: Text(widget.user.email),
+              otherAccountsPictures: <Widget>[
+                Text("RM " + widget.user.credit,
+                    style: TextStyle(fontSize: 16.0, color: Colors.white)),
+              ],
+              currentAccountPicture: CircleAvatar(
+                backgroundColor:
+                    Theme.of(context).platform == TargetPlatform.android
+                        ? Colors.white
+                        : Colors.white,
+                child: Text(
+                  widget.user.name.toString().substring(0, 1).toUpperCase(),
+                  style: TextStyle(fontSize: 40.0),
+                ),
+              ),
+              onDetailsPressed: () => {
+                Navigator.pop(context),
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (BuildContext context) => ProfileScreen(
+                              user: widget.user,
+                            )))
+              },
+            ),
+            ListTile(
+                leading: Icon(Icons.home, color: Colors.teal[400]),
+                title: Text(
+                  "Home",
+                  style: TextStyle(
+                    color: Colors.black,
+                  ),
+                ),
+                trailing: Icon(Icons.arrow_forward, color: Colors.white),
+                onTap: () => {
+                      Navigator.pop(context),
+                      _loadData(),
+                    }),
+            ListTile(
+                title: Text(
+                  "Shopping Cart",
+                  style: TextStyle(
+                    color: Colors.black,
+                  ),
+                ),
+                leading: Icon(Icons.shopping_cart, color: Colors.red[400]),
+                trailing: Icon(Icons.arrow_forward, color: Colors.white),
+                onTap: () => {
+                      Navigator.pop(context),
+                      gotoCart(),
+                    }),
+            ListTile(
+                title: Text(
+                  "My Profile",
+                  style: TextStyle(
+                    color: Colors.black,
+                  ),
+                ),
+                leading: Icon(Icons.person, color: Colors.blue[400]),
+                trailing: Icon(Icons.arrow_forward, color: Colors.white),
+                onTap: () => {
+                      Navigator.pop(context),
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (BuildContext context) => ProfileScreen(
+                                    user: widget.user,
+                                  )))
+                    }),
+            ListTile(
+                title: Text(
+                  "Purchase History",
+                  style: TextStyle(
+                    color: Colors.black,
+                  ),
+                ),
+                leading: Icon(Icons.shopping_basket, color: Colors.orange[300]),
+                trailing: Icon(Icons.arrow_forward, color: Colors.white),
+                onTap: _paymentScreen),
+            Visibility(
+              visible: _isAdmin,
+              child: Column(
+                children: <Widget>[
+                  Divider(
+                    height: 2,
+                    color: Colors.black,
+                  ),
+                  Center(
+                    child: Text(
+                      "Admin Menu",
+                      style: TextStyle(
+                          color: Colors.black, fontWeight: FontWeight.bold),
                     ),
                   ),
-                );
-              },
-            )));
+                  ListTile(
+                      title: Text(
+                        "Manage Products",
+                        style: TextStyle(
+                          color: Colors.black,
+                        ),
+                      ),
+                      trailing: Icon(Icons.arrow_forward, color: Colors.white),
+                      onTap: () => {
+                            Navigator.pop(context),
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (BuildContext context) =>
+                                        AdminProduct(
+                                          user: widget.user,
+                                        )))
+                          }),
+                ],
+              ),
+            )
+          ],
+        ),
+      ),
+    );
   }
 
-  void sortItem(String category) {
+  void _sortItem(String category) {
     try {
       ProgressDialog pr = new ProgressDialog(context,
-          type: ProgressDialogType.Normal, isDismissible: false);
-      pr.style(message: "Loading Products...");
+          type: ProgressDialogType.Normal, isDismissible: true);
+      pr.style(message: "Searching...");
       pr.show();
-      String urlLoadProduct =
-          "https://saujanaeclipse.com/techGoods/php/load_products.php";
-      http.post(urlLoadProduct, body: {
+      String urlLoadJobs = server + "/php/load_products.php";
+      http.post(urlLoadJobs, body: {
         "category": category,
       }).then((res) {
-        setState(() {
-          currentCategory = category;
-          var extractdata = json.decode(res.body);
-          productInfo = extractdata["products"];
-          FocusScope.of(context).requestFocus(new FocusNode());
-          pr.hide().then((isHidden) {
-  print(isHidden);
-});
-        });
+        if (res.body == "nodata") {
+          setState(() {
+            productInfo = null;
+            currentCategory = category;
+            titlecenter = "No product found";
+          });
+          pr.hide();
+        } else {
+          setState(() {
+            currentCategory = category;
+            var extractdata = json.decode(res.body);
+            productInfo = extractdata["products"];
+            FocusScope.of(context).requestFocus(new FocusNode());
+            pr.hide();
+          });
+        }
       }).catchError((err) {
         print(err);
-        pr.hide().then((isHidden) {
-  print(isHidden);
-});
+        pr.hide();
       });
-      pr.hide().then((isHidden) {
-  print(isHidden);
-});
+      pr.hide();
     } catch (e) {
       Toast.show("Error", context,
           duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
     }
   }
 
+  Widget searchProd() {
+    return Visibility(
+        visible: _visible,
+        child: Row(
+          children: <Widget>[
+            Container(
+              margin: EdgeInsets.only(left: 10, right: 10, top: 15, bottom: 15),
+              height: screenHeight / 13,
+              width: screenWidth / 1.3,
+              decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(28)),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 3, left: 20),
+                child: TextField(
+                    controller: searchProductController,
+                    decoration: InputDecoration(
+                        hintText: 'Search Product', border: InputBorder.none)),
+              ),
+            ),
+            Expanded(
+                child: Padding(
+              padding: const EdgeInsets.only(top: 15),
+              child: MaterialButton(
+                  onPressed: () =>
+                      {sortItemByName(searchProductController.text)},
+                  child: Icon(
+                    Icons.search,
+                    color: Colors.teal[400],
+                  )),
+            )),
+          ],
+        ));
+  }
+
   void sortItemByName(String prodName) {
     try {
-      String urlLoadProduct =
-          "https://saujanaeclipse.com/techGoods/php/load_products.php";
+      print(prodName);
       ProgressDialog pr = new ProgressDialog(context,
-          type: ProgressDialogType.Normal, isDismissible: false);
-      pr.style(
-          message: 'Searching...',
-          progressTextStyle: TextStyle(
-              color: Colors.black,
-              fontSize: 13.0,
-              fontWeight: FontWeight.w400));
+          type: ProgressDialogType.Normal, isDismissible: true);
+      pr.style(message: "Searching...");
       pr.show();
+      String urlLoadJobs = server + "/php/load_products.php";
       http
-          .post(urlLoadProduct, body: {
+          .post(urlLoadJobs, body: {
             "name": prodName.toString(),
           })
           .timeout(const Duration(seconds: 4))
           .then((res) {
             if (res.body == "nodata") {
-              Toast.show("Ooops..product not found!", context,
+              Toast.show("Product not found", context,
                   duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
-              pr.hide().then((isHidden) {
-  print(isHidden);
-});
+              pr.hide();
+              setState(() {
+                titlecenter = "No product found";
+                currentCategory = "search for " + "'" + prodName + "'";
+                productInfo = null;
+              });
               FocusScope.of(context).requestFocus(new FocusNode());
+
               return;
+            } else {
+              setState(() {
+                var extractdata = json.decode(res.body);
+                productInfo = extractdata["products"];
+                FocusScope.of(context).requestFocus(new FocusNode());
+                currentCategory = "search for " + "'" + prodName + "'";
+                pr.hide();
+              });
             }
-            setState(() {
-              var extractdata = json.decode(res.body);
-              productInfo = extractdata["products"];
-              FocusScope.of(context).requestFocus(new FocusNode());
-              currentCategory = prodName;
-              pr.hide().then((isHidden) {
-  print(isHidden);
-});
-            });
           })
           .catchError((err) {
-          pr.hide().then((isHidden) {
-  print(isHidden);
-});
+            pr.hide();
           });
-      pr.hide().then((isHidden) {
-  print(isHidden);
-});
+      pr.hide();
+    } on TimeoutException catch (_) {
+      Toast.show("Time out", context,
+          duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
+    } on SocketException catch (_) {
+      Toast.show("Time out", context,
+          duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
     } catch (e) {
-      Toast.show('Error', context,
+      Toast.show("Error", context,
           duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
     }
   }
 
-  addItemConfirmation(int index) {
-    showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
+  gotoCart() async {
+    if (widget.user.email == "unregistered@techgoods.com") {
+      Toast.show("Please register to use this function", context,
+          duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
+      return;
+    } else if (widget.user.email == "admin@techgoods.com") {
+      Toast.show("Admin mode!!!", context,
+          duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
+      return;
+    } else if (widget.user.quantity == "0") {
+      Toast.show("Cart empty", context,
+          duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
+      return;
+    } else {
+      await Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (BuildContext context) => CartScreen(
+                    user: widget.user,
+                  )));
+      _loadData();
+      _loadCartQuantity();
+    }
+  }
+
+  Future<bool> _onBackPressed() {
+    return showDialog(
+          context: context,
+          builder: (context) => new AlertDialog(
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20.0)),
-            title: Text('Add item to cart?',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            content: Container(
-                height: screenHeight / 15,
-                child: Column(
-                  children: <Widget>[
-                    Text('Choose your quantity'),
-                  ],
-                )),
+                borderRadius: BorderRadius.all(Radius.circular(20.0))),
+            title: new Text(
+              'Are you sure?',
+              style: TextStyle(
+                color: Colors.white,
+              ),
+            ),
+            content: new Text(
+              'Do you want to exit an App',
+              style: TextStyle(
+                color: Colors.white,
+              ),
+            ),
             actions: <Widget>[
-              // usually buttons at the bottom of the dialog
-              new FlatButton(
-                  child: new Text(
-                    "Yes",
-                    style: TextStyle(color: Colors.teal),
-                  ),
+              MaterialButton(
+                  onPressed: () {
+                    SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+                  },
+                  child: Text(
+                    "Exit",
+                    style: TextStyle(
+                      color: Color.fromRGBO(101, 255, 218, 50),
+                    ),
+                  )),
+              MaterialButton(
                   onPressed: () {
                     Navigator.of(context).pop(false);
-                    _addItemtoCart(index);
-                  }),
-              new FlatButton(
-                child: new Text("No", style: TextStyle(color: Colors.teal)),
-                onPressed: () {
-                  Navigator.of(context).pop(false);
-                  return;
-                },
-              )
+                  },
+                  child: Text(
+                    "Cancel",
+                    style: TextStyle(
+                      color: Color.fromRGBO(101, 255, 218, 50),
+                    ),
+                  )),
             ],
-          );
-        });
-  }
-
-  void _addItemtoCart(int index) {
-    try {
-      int quantity = int.parse(productInfo[index]['quantity']);
-      if (quantity > 0) {
-        ProgressDialog pd = new ProgressDialog(context,
-            type: ProgressDialogType.Normal, isDismissible: false);
-        pd.style(message: "Adding to cart...");
-        pd.show();
-        String urlAddToCart =
-            "https://saujanaeclipse.com/techGoods/php/insert_cart.php";
-        http.post(urlAddToCart, body: {
-          "email": widget.user.email,
-          "prodid": productInfo[index]["id"]
-        }).then((res) {
-          if (res.body == "failed") {
-            Toast.show('Failed to add to cart', context,
-                duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
-          } else {
-            List respond = res.body.split(',');
-            setState(() {
-              cartquantity = respond[1];
-            });
-            Toast.show('Successfully added to cart', context,
-                duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
-          }
-          pd.hide().then((isHidden) {
-  print(isHidden);
-});
-        });
-      }
-    } catch (e) {
-      Toast.show('Error', context,
-          duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
-    }
+          ),
+        ) ??
+        false;
   }
 
   _productDetails(int index) async {
@@ -719,5 +794,52 @@ class _MainScreenState extends State<MainScreen> {
         MaterialPageRoute(
             builder: (BuildContext context) =>
                 ProductDetails(product: product, user: widget.user)));
+  }
+
+  void _paymentScreen() {
+    if (widget.user.email == "unregistered@techgoods.com") {
+      Toast.show("Please register to use this function", context,
+          duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
+      return;
+    } else if (widget.user.email == "admin@techgoods.com") {
+      Toast.show("Admin Mode", context,
+          duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
+      return;
+    }
+    Navigator.pop(context);
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (BuildContext context) => PurchaseHistory(
+                  user: widget.user,
+                )));
+  }
+
+  Widget imageCarousel() {
+    return Visibility(
+      visible: _visible,
+      child: Container(
+        child: SizedBox(
+            height: 200.0,
+            width: 500.0,
+            child: Carousel(
+              dotBgColor: Colors.grey,
+              dotColor: Colors.teal[300],
+              indicatorBgPadding: 0.5,
+              images: [
+                ExactAssetImage("assets/images/miphone.jpg"),
+                ExactAssetImage("assets/images/surface.jpg"),
+                ExactAssetImage("assets/images/tablets.jpg")
+              ],
+            )),
+      ),
+    );
+  }
+
+  Future<Null> refreshList() async {
+    await Future.delayed(Duration(seconds: 2));
+    //_getLocation();
+    _loadData();
+    return null;
   }
 }
