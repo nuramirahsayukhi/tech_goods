@@ -111,7 +111,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       child: Column(
         children: <Widget>[
           TextFormField(
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: Colors.black),
             controller: nameEditingController,
             keyboardType: TextInputType.text,
             //validator: _validateName,
@@ -125,7 +125,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
           SizedBox(height: 8),
           TextFormField(
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: Colors.black),
             controller: emailEditingController,
             keyboardType: TextInputType.emailAddress,
             //validator: _validateEmail,
@@ -139,7 +139,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
           SizedBox(height: 8),
           TextFormField(
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: Colors.black),
             controller: phoneEditingController,
             keyboardType: TextInputType.phone,
             //validator: _validatePhoneNo,
@@ -153,7 +153,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
           SizedBox(height: 8),
           TextFormField(
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: Colors.black),
             controller: passwordEditingController,
             keyboardType: TextInputType.text,
             //validator: _validatePassword,

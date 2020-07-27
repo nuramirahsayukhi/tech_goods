@@ -383,7 +383,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: <Widget>[
                   TextField(
                       style: TextStyle(
-                        color: Colors.white,
+                        color: Colors.black,
                       ),
                       controller: passController,
                       obscureText: true,
@@ -396,7 +396,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       )),
                   TextField(
                       style: TextStyle(
-                        color: Colors.white,
+                        color: Colors.black,
                       ),
                       obscureText: true,
                       controller: pass2Controller,

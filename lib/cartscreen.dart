@@ -80,7 +80,7 @@ class _CartScreenState extends State<CartScreen> {
                               child: Text(
                             titleCenter,
                             style: TextStyle(
-                                color: Colors.teal,
+                                color: Colors.black,
                                 fontSize: 22,
                                 fontWeight: FontWeight.bold),
                           )))

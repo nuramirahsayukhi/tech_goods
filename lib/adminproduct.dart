@@ -477,24 +477,23 @@ class _AdminProductState extends State<AdminProduct> {
       builder: (BuildContext context) {
         // return object of type Dialog
         return AlertDialog(
-          backgroundColor: Colors.black,
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(20.0))),
           title: new Text(
             "Delete Product Id " + productInfo[index]['id'],
             style: TextStyle(
-              color: Colors.white,
+              color: Colors.black,
             ),
           ),
           content:
-              new Text("Are you sure?", style: TextStyle(color: Colors.white)),
+              new Text("Are you sure?", style: TextStyle(color: Colors.black)),
           actions: <Widget>[
             // usually buttons at the bottom of the dialog
             new FlatButton(
               child: new Text(
                 "Yes",
                 style: TextStyle(
-                  color: Color.fromRGBO(101, 255, 218, 50),
+                  color: Colors.teal,
                 ),
               ),
               onPressed: () {
@@ -504,9 +503,9 @@ class _AdminProductState extends State<AdminProduct> {
             ),
             new FlatButton(
               child: new Text(
-                "No",
+                "Cancel",
                 style: TextStyle(
-                  color: Color.fromRGBO(101, 255, 218, 50),
+                  color: Colors.teal,
                 ),
               ),
               onPressed: () {

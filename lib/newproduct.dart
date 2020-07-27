@@ -391,7 +391,7 @@ class _NewProductState extends State<NewProduct> {
                                                 hint: Text(
                                                   'Category',
                                                   style: TextStyle(
-                                                      color: Colors.black),
+                                                      color: Colors.teal),
                                                 ), // Not necessary for Option 1
                                                 value: selectedCategory,
                                                 onChanged: (newValue) {
@@ -613,24 +613,23 @@ class _NewProductState extends State<NewProduct> {
       builder: (BuildContext context) {
         // return object of type Dialog
         return AlertDialog(
-          backgroundColor: Colors.black,
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(20.0))),
           title: new Text(
             "Insert New Product " + prnameEditingController.text,
             style: TextStyle(
-              color: Colors.white,
+              color: Colors.black,
             ),
           ),
           content:
-              new Text("Are you sure?", style: TextStyle(color: Colors.white)),
+              new Text("Are you sure?", style: TextStyle(color: Colors.black)),
           actions: <Widget>[
             // usually buttons at the bottom of the dialog
             new FlatButton(
               child: new Text(
                 "Yes",
                 style: TextStyle(
-                  color: Color.fromRGBO(101, 255, 218, 50),
+                  color: Colors.teal,
                 ),
               ),
               onPressed: () {
@@ -640,9 +639,9 @@ class _NewProductState extends State<NewProduct> {
             ),
             new FlatButton(
               child: new Text(
-                "No",
+                "Cancel",
                 style: TextStyle(
-                  color: Color.fromRGBO(101, 255, 218, 50),
+                  color: Colors.teal,
                 ),
               ),
               onPressed: () {
@@ -702,7 +701,7 @@ class _NewProductState extends State<NewProduct> {
 
     await showMenu(
       context: context,
-      color: Colors.black,
+      color: Colors.white,
       position: RelativeRect.fromRect(
           _tapPosition & Size(40, 40), // smaller rect, the touch area
           Offset.zero & overlay.size // Bigger rect, the entire screen
@@ -752,13 +751,12 @@ class _NewProductState extends State<NewProduct> {
       builder: (BuildContext context) {
         // return object of type Dialog
         return AlertDialog(
-          backgroundColor: Colors.black,
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.all(Radius.circular(20.0))),
           title: new Text(
             "Enter Product ID ",
             style: TextStyle(
-              color: Colors.white,
+              color: Colors.black,
             ),
           ),
           content: new Container(
@@ -766,7 +764,7 @@ class _NewProductState extends State<NewProduct> {
             height: 30,
             child: TextFormField(
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Colors.black,
                 ),
                 controller: pridedtctrl,
                 keyboardType: TextInputType.number,
@@ -786,7 +784,7 @@ class _NewProductState extends State<NewProduct> {
               child: new Text(
                 "Yes",
                 style: TextStyle(
-                  color: Color.fromRGBO(101, 255, 218, 50),
+                  color: Colors.teal,
                 ),
               ),
               onPressed: () {
@@ -802,7 +800,7 @@ class _NewProductState extends State<NewProduct> {
               child: new Text(
                 "No",
                 style: TextStyle(
-                  color: Color.fromRGBO(101, 255, 218, 50),
+                  color: Colors.teal,
                 ),
               ),
               onPressed: () {

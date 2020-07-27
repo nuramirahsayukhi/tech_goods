@@ -56,6 +56,7 @@ class _MainScreenState extends State<MainScreen> {
         onWillPop: _onBackPressed,
         child: Scaffold(
           //backgroundColor: Colors.black,
+          resizeToAvoidBottomPadding: false,
           drawer: mainDrawer(context),
           appBar: AppBar(
             backgroundColor: Colors.teal[400],
@@ -306,7 +307,7 @@ class _MainScreenState extends State<MainScreen> {
                                     child: Text(
                             titlecenter,
                             style: TextStyle(
-                                color: Colors.teal,
+                                color: Colors.black,
                                 fontSize: 22,
                                 fontWeight: FontWeight.bold),
                           ))))
