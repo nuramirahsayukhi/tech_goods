@@ -432,8 +432,7 @@ class _AdminProductState extends State<AdminProduct> {
                             ),
                             Text(
                               "RM " + productInfo[index]['price'],
-                              style:
-                                  TextStyle(color: Colors.greenAccent.shade700),
+                              style: TextStyle(color: Colors.black),
                             ),
                             Text("In Stock: " + productInfo[index]['quantity']),
                             Row(
